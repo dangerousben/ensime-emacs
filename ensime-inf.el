@@ -159,8 +159,20 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
   (if (and (ensime-connected-p) (ensime-analyzer-ready))
       (ensime-replace-keywords
        ensime-inf-cmd-template
-       (ensime-rpc-repl-config))
+       (ensime-inf-repl-config))
     ensime-inf-default-cmd-line))
+
+(defun ensime-inf-repl-config ()
+  (let ((config (ensime-config))
+        (get-deps (lambda (c)
+                    (cons (plist-get c :target)
+                          (append (plist-get c :compile-deps)
+                                  (plist-get c :runtime-deps))))))
+    (list :classpath
+          (mapconcat #'identity (apply #'append
+                                     (funcall get-deps config)
+                                     (mapcar get-deps (plist-get config :subprojects)))
+                     ensime--classpath-separator))))
 
 (defun ensime-inf-switch ()
   "Switch to buffer containing the interpreter"
