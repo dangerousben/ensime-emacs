@@ -62,7 +62,7 @@
   :group 'ensime
   :prefix "ensime-inf-")
 
-(defcustom ensime-inf-cmd-template '("scala" "-classpath" :classpath)
+(defcustom ensime-inf-cmd-template '(:java "-classpath" :classpath "scala.tools.nsc.MainGenericRunner" "-classpath" :classpath)
   "The command to launch the scala interpreter. Keywords will be replaced
 with data loaded from server."
   :type 'string
@@ -168,11 +168,14 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
                     (cons (plist-get c :target)
                           (append (plist-get c :compile-deps)
                                   (plist-get c :runtime-deps))))))
-    (list :classpath
-          (mapconcat #'identity (apply #'append
-                                     (funcall get-deps config)
-                                     (mapcar get-deps (plist-get config :subprojects)))
-                     ensime--classpath-separator))))
+    (list
+     :java (concat (plist-get config :java-home) "/bin/java")
+     :classpath (mapconcat #'identity
+                           (cons (ensime-read-from-file (ensime--classpath-file (plist-get config :scala-version)))
+                                 (apply #'append
+                                        (funcall get-deps config)
+                                        (mapcar get-deps (plist-get config :subprojects))))
+                           ensime--classpath-separator))))
 
 (defun ensime-inf-switch ()
   "Switch to buffer containing the interpreter"
