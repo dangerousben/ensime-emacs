@@ -1663,22 +1663,6 @@
       (ensime-test-cleanup proj))))
 
    (ensime-async-test
-    "Test get repl config."
-    (let* ((proj (ensime-create-tmp-project
-                  ensime-tmp-project-hello-world)))
-      (ensime-test-init-proj proj))
-
-    ((:connected :compiler-ready :full-typecheck-finished)
-     (ensime-test-with-proj
-      (proj src-files)
-      (let ((conf (ensime-rpc-repl-config)))
-        (ensime-assert (not (null conf)))
-        (ensime-assert
-         (not (null (plist-get conf :classpath)))))
-
-      (ensime-test-cleanup proj))))
-
-   (ensime-async-test
     "Test interactive search."
     (let* ((proj (ensime-create-tmp-project
                   ensime-tmp-project-hello-world)))
