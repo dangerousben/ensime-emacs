@@ -259,6 +259,14 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
   (interactive)
   (ensime-inf-eval-region (point-min) (point-max)))
 
+(defun ensime-inf-paste-buffer ()
+  "Send whole buffer to Scala interpreter in raw paste mode."
+  (interactive)
+  (ensime-inf-assert-running)
+  (comint-send-string ensime-inf-buffer-name ":paste -raw\n")
+  (comint-send-region ensime-inf-buffer-name (point-min) (point-max))
+  (comint-send-string ensime-inf-buffer-name "\n"))
+
 (defun ensime-inf-load-file (file-name)
   "Load a file in the Scala interpreter."
   (interactive (comint-get-source "Load Scala file: " ensime-inf-prev-l/c-dir/file
