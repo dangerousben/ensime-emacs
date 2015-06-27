@@ -37,6 +37,11 @@
   :type 'boolean
   :group 'ensime-ui)
 
+(defcustom ensime-company-enable-yasnippet t
+  "Set to nil to disable yasnippet completions."
+  :type 'booleanp
+  :group 'ensime-ui)
+
 (defun ensime--yasnippet-escape (s)
   "Return a new string with special yasnippet chars escaped."
   (s-replace "$" "\\$" s))
@@ -123,7 +128,7 @@
 (defun ensime-company-enable ()
   (set (make-local-variable 'company-backends) '(ensime-company))
   (company-mode)
-  (yas-minor-mode-on)
+  (when ensime-company-enable-yasnippet (yas-minor-mode-on))
   (set (make-local-variable 'company-idle-delay) 0)
   (set (make-local-variable 'company-minimum-prefix-length) 2)
   (local-set-key [tab] 'ensime-company-complete-or-indent))
@@ -131,28 +136,29 @@
 (defun ensime--yasnippet-complete-action (&optional candidate-in force-block)
   "If the candidate is a callable symbol, expand a yasnippet template for the
  argument list."
-  (let* (;; When called by auto-complete-mode, grab from dynamic environment.
-	 (candidate (or candidate-in candidate))
-	 (name candidate)
-	 (type-id (get-text-property 0 'type-id candidate))
-	 (is-callable (get-text-property 0 'is-callable candidate))
-	 (to-insert (get-text-property 0 'to-insert candidate))
-	 (name-start-point (- (point) (length name)))
-	 (call-info
-	  (when is-callable (ensime-rpc-get-call-completion type-id)))
-	 (param-sections
-	  (when is-callable
-	    (-filter
-	     (lambda (sect)
-	       (not (plist-get sect :is-implicit)))
-	     (ensime-type-param-sections call-info))))
-	 (is-operator
-	  (and is-callable
-	       (= 1 (length param-sections))
-	       (= 1 (length (plist-get
-			     (car param-sections) :params)))
-	       (null (string-match "[A-z]" name))))
-	 (is-field-assigner (s-ends-with? "_=" name)))
+  (when ensime-company-enable-yasnippet
+    (let* (;; When called by auto-complete-mode, grab from dynamic environment.
+           (candidate (or candidate-in candidate))
+           (name candidate)
+           (type-id (get-text-property 0 'type-id candidate))
+           (is-callable (get-text-property 0 'is-callable candidate))
+           (to-insert (get-text-property 0 'to-insert candidate))
+           (name-start-point (- (point) (length name)))
+           (call-info
+            (when is-callable (ensime-rpc-get-call-completion type-id)))
+           (param-sections
+            (when is-callable
+              (-filter
+               (lambda (sect)
+                 (not (plist-get sect :is-implicit)))
+               (ensime-type-param-sections call-info))))
+           (is-operator
+            (and is-callable
+                 (= 1 (length param-sections))
+                 (= 1 (length (plist-get
+                               (car param-sections) :params)))
+                 (null (string-match "[A-z]" name))))
+           (is-field-assigner (s-ends-with? "_=" name))))
 
 
     (when is-field-assigner
