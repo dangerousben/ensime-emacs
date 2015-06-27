@@ -936,7 +936,30 @@
    (ensime-test
     "Test ensime-stacktrace-groups-lines-to-fold"
     (let ((grouped-lines (ensime-stacktrace-group-lines-to-fold '(10 9 8 6 5 3 1))))
-      (ensime-assert-equal '((1) (3) (5 6) (8 9 10)) grouped-lines)))))
+      (ensime-assert-equal '((1) (3) (5 6) (8 9 10)) grouped-lines)))
+
+   (ensime-test
+    "Test ensime-package-path-at-point"
+    (with-temp-buffer
+      (insert "package foo.bar.baz")
+      (ensime-assert-equal (ensime-package-path-at-point) "foo.bar.baz")))
+
+   (ensime-test
+    "Test ensime-package-containing-point"
+    (with-temp-buffer
+      (insert "package foo.bar.baz\n\ntrait Foo\n")
+      (ensime-assert-equal (ensime-package-containing-point) "foo.bar.baz")))
+
+   (ensime-test
+    "Test ensime-package-at-point"
+    (with-temp-buffer
+      (insert "package foo.bar.baz\nimport foo.bar.qux\n\ntrait Foo\n")
+      (beginning-of-buffer)
+      (move-end-of-line 2)
+      (ensime-assert-equal (ensime-package-at-point) "foo.bar.qux")
+      (next-line)
+      (ensime-assert-equal (ensime-package-at-point) "foo.bar.baz")))
+   ))
 
 (defun ensime--test-completions ()
   "Helper for completion testing."
@@ -2033,6 +2056,19 @@
        (ensime-assert-equal (process-status proc) 'exit)
        (ensime-assert-equal (process-exit-status proc) 0)
        (ensime-test-with-proj (proj src-files) (ensime-cleanup-tmp-project proj)))))
+
+   (ensime-test
+    "Test REPL imports."
+    (let ((proj (ensime-create-tmp-project
+                 `((:name "Test.scala"
+                    :contents ,(ensime-test-concat-lines
+                                "package foo.bar"
+                                "import scala.math"
+                                "object Test { def test(x: Int) = math.abs(x) }"))))))
+      (unwind-protect
+          ;; Run and import
+          (find-file (car (plist-get proj :src-files)))
+        (ensime-cleanup-tmp-project proj))))
   ))
 
 
