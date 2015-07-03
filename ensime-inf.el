@@ -134,7 +134,6 @@ Used for determining the default in the next one.")
 		 (car cmd-and-args)
 		 nil
 		 (cdr cmd-and-args))
-
     (setq ensime-buffer-connection conn)
 
     (let ((proc (get-buffer-process (current-buffer))))

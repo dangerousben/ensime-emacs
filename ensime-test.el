@@ -2057,18 +2057,24 @@
        (ensime-assert-equal (process-exit-status proc) 0)
        (ensime-test-with-proj (proj src-files) (ensime-cleanup-tmp-project proj)))))
 
-   (ensime-test
-    "Test REPL imports."
-    (let ((proj (ensime-create-tmp-project
-                 `((:name "Test.scala"
-                    :contents ,(ensime-test-concat-lines
-                                "package foo.bar"
-                                "import scala.math"
-                                "object Test { def test(x: Int) = math.abs(x) }"))))))
-      (unwind-protect
-          ;; Run and import
-          (find-file (car (plist-get proj :src-files)))
-        (ensime-cleanup-tmp-project proj))))
+   (ensime-async-test
+    "ensime-inf-run-and-import"
+    (progn
+      (ensime-test-init-proj
+       (ensime-create-tmp-project '((:name "test.scala" :contents "package scala.math")))
+       t)
+      (end-of-line)
+      (ensime-inf-run-and-import))
+    ((:inf-repl-ready)
+     (ensime-inf-send-string "abs(-1)"))
+    ((:inf-repl-ready)
+     (with-current-buffer ensime-inf-buffer-name
+       (message "name: %S" (buffer-name))
+       (message "content: %S" (buffer-string))
+       (ensime-assert (search-backward ": Int = 1" nil t)))
+     (ensime-inf-quit-interpreter))
+    ((:inf-repl-exit)
+     (ensime-cleanup-tmp-project proj)))
   ))
 
 

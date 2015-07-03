@@ -77,3 +77,5 @@
 (menu-bar-mode 0)
 (toggle-scroll-bar 0)
 (setq backup-directory-alist '(("." . (ensime-temp-directory))))
+
+(setq debug-on-error t)

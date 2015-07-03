@@ -13,7 +13,7 @@ fi
 # set to 'nil' when writing tests, it'll leave emacs open for you to
 # interactively inspect the environment
 if [ -z "$ENSIME_RUN_AND_EXIT" ] ; then
-   export ENSIME_RUN_AND_EXIT=t
+   export ENSIME_RUN_AND_EXIT=nil
 fi
 
 export ENSIME_SKIP_JRE_INDEX=t
